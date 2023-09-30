@@ -198,20 +198,40 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 ```
 上面的命令表示用户 `tom` 拥有四个属性，分别是 `a`、`b`、`c` 和 `d`。上述令执行完后会返回一段字符串 `65654222723158089580309478147554531101290243011783304735517179386767087171939`，该段字符串即是 `tom` 的属性私钥，将来把属性私钥提交给签名预言机，可以生成 `tom` 的专属签名令牌，持有该令牌，`tom` 可以某些合约，这些合约的访问策略适用于 `tom` 的属性值。
 
-**为Dog合约设置访问策略的命令**
+**为Dog合约的GetDog设置访问策略的命令**
 
 ```sh
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n contracts --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"DSCABS:GenPK","Args":["DogContract","GetDog","{a,b,c,d,[4,3]}"]}'
 ```
 
-上述命令为 `DogContract` 智能合约中的 `GetDog` 方法注册了访问策略 `"{a,b,c,d,[4,3]}"`，该策略表示只要用户拥有 `a`、`b`、`c` 和 `d` 四个属性中任意三个或三个以上属性就可以满足该访问策略，而就可以访问 `DogContract` 智能合约中的 `GetDog` 方法。
+上述命令为 `DogContract` 智能合约中的 `GetDog` 方法注册了访问策略 `"{a,b,c,d,[4,3]}"`，该策略表示只要用户拥有 `a`、`b`、`c` 和 `d` 四个属性中任意三个或三个以上属性就可以满足该访问策略，继而可以访问 `DogContract` 智能合约中的 `GetDog` 方法。
+
+**为Dog合约的AddDog设置访问策略的命令**
+
+```sh
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n contracts --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"DSCABS:GenPK","Args":["DogContract","AddDog","{a,b,c,d,[4,4]}"]}'
+```
+
+上述命令为 `DogContract` 智能合约中的 `AddDog` 方法注册了访问策略 `"{a,b,c,d,[4,4]}"`，该策略表示只要用户拥有 `a`、`b`、`c` 和 `d` 四个属性就可以满足该访问策略，继而可以访问 `DogContract` 智能合约中的 `AddDog` 方法。
 
 **用户tom试图调用Dog合约的GetDog方法**
 
-首先，用户tom需要构建消息 `m`，因为是首次调用合约，因此 `m` 的内容是 `"0:tom:CatContract:GetCat"`，然后 `tom` 利用自己的属性私钥对消息 `m` 进行签名，并将签名放入调用合约时构造的参数列表中，命令如下所示：
+`tom` 将自己的属性私钥作为签名预言机 `sign` 的输入，然后得到被签名的消息和签名令牌：
+```sh
+# 在 dscabs 文件夹下有一个可执行文件：sign，该可执行文件可以利用用户的属性私钥生成签名令牌，如下命令所示：
+./sign -sk 65654222723158089580309478147554531101290243011783304735517179386767087171939
+```
+
+上述命令执行完后，得到结果如下：
+```sh
+signed message: 2023-09-30T20:43:55+08:00
+signature: 70575637034000971724969910111648117757602554926545225266685166753002292234323,114499258979695449655558653937005681558659168019570278734404181814185464382131
+```
+
+其中，`signed message` 就是被签名的消息，这里我们用调用签名预言机 `sign` 时的时间戳作为被签名的消息，`signature` 就是生成的签名令牌。
 
 ```sh
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n mycontract6 --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"DogContract:GetDog","Args":["tom","70575637034000971724969910111648117757602554926545225266685166753002292234323,114499258979695449655558653937005681558659168019570278734404181814185464382131","2023-09-30T20:43:55+08:00","dog4"]}'
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n contracts --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"DogContract:GetDog","Args":["tom","70575637034000971724969910111648117757602554926545225266685166753002292234323,114499258979695449655558653937005681558659168019570278734404181814185464382131","2023-09-30T20:43:55+08:00","dog4"]}'
 ```
 
 上述命令中的 `"70575637034000971724969910111648117757602554926545225266685166753002292234323,114499258979695449655558653937005681558659168019570278734404181814185464382131"` 字符串是由签名预言机利用 `tom` 的属性私钥 `"65654222723158089580309478147554531101290243011783304735517179386767087171939"` 为消息 `"2023-09-30T20:43:55+08:00"` 生成的签名令牌。根据上面的描述，用户 `tom` 所拥有的属性是满足合约方法的访问策略的，所以，可以顺利完成访问请求，得到如下结果：
