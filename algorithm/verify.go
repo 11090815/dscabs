@@ -1,13 +1,14 @@
 package algorithm
 
 import (
-	"crypto/sha256"
+	"math/big"
 
 	"github.com/11090815/dscabs/ecdsa"
 	"github.com/11090815/dscabs/ecdsa/bigint"
+	"github.com/11090815/dscabs/sm2"
 )
 
-func Verify(params *SystemParams, userPK map[string]*ecdsa.EllipticCurvePoint, key *Key, m []byte, sig *ecdsa.EllipticCurveSignature) bool {
+func Verify(params *SystemParams, userAPK map[string]*ecdsa.EllipticCurvePoint, userPK *sm2.PublicKey, key *Key, m []byte, sig *ecdsa.EllipticCurveSignature) bool {
 	if key == nil {
 		return false
 	}
@@ -15,7 +16,7 @@ func Verify(params *SystemParams, userPK map[string]*ecdsa.EllipticCurvePoint, k
 		key   *Key
 		point *ecdsa.EllipticCurvePoint
 	})}
-	return verify(params, userPK, key, m, sig, t, 1)
+	return verify(params, userAPK, userPK, key, m, sig, t, 1)
 }
 
 func VerifyNode(params *SystemParams, key *Key, userPK map[string]*ecdsa.EllipticCurvePoint) *ecdsa.EllipticCurvePoint {
@@ -33,9 +34,9 @@ func VerifyNode(params *SystemParams, key *Key, userPK map[string]*ecdsa.Ellipti
 	return res
 }
 
-func verify(params *SystemParams, userPK map[string]*ecdsa.EllipticCurvePoint, key *Key, m []byte, sig *ecdsa.EllipticCurveSignature, t *track, stack int) bool {
+func verify(params *SystemParams, userAPK map[string]*ecdsa.EllipticCurvePoint, userPK *sm2.PublicKey, key *Key, m []byte, sig *ecdsa.EllipticCurveSignature, t *track, stack int) bool {
 	if key.Children == nil || len(key.Children) == 0 {
-		point := VerifyNode(params, key, userPK)
+		point := VerifyNode(params, key, userAPK)
 		if !point.EqualBottom() {
 			// this attribute is belong to user.
 			if t.m[key.Parent] == nil {
@@ -54,7 +55,7 @@ func verify(params *SystemParams, userPK map[string]*ecdsa.EllipticCurvePoint, k
 
 	for _, child := range key.Children {
 		_stack := stack + 1
-		verify(params, userPK, child, m, sig, t, _stack)
+		verify(params, userAPK, userPK, child, m, sig, t, _stack)
 	}
 
 	if key.T <= len(t.m[key]) { // if the number of children exceeds threshold.
@@ -97,24 +98,27 @@ func verify(params *SystemParams, userPK map[string]*ecdsa.EllipticCurvePoint, k
 
 		var X = new(bigint.BigInt).SetInt64(0)
 
-		for key := range userPK {
+		for key := range userAPK {
 			X.Add(X, universe[key].x)
 		}
 		X.Mod(X, bigint.GoToBigInt(params.Curve.Params().N))
 
 		ux, uy := params.Curve.ScalarMult(key.UseToVerify.X.GetGoBigInt(), key.UseToVerify.Y.GetGoBigInt(), X.Bytes())
-		key.UseToVerify.X, key.UseToVerify.Y = bigint.GoToBigInt(ux), bigint.GoToBigInt(uy)
+		// key.UseToVerify.X, key.UseToVerify.Y = bigint.GoToBigInt(ux), bigint.GoToBigInt(uy)
 
-		e := new(bigint.BigInt).SetBytes(sha256.New().Sum(m))
-		inverseS, _ := ecdsa.CalcInverseElem(sig.S.GetGoBigInt(), params.Curve.Params().N)
-		var u1 = new(bigint.BigInt).Mul(inverseS, e)
-		var u2 = new(bigint.BigInt).Mul(inverseS, sig.R)
-		var p = &ecdsa.EllipticCurvePoint{}
-		px, py := params.Curve.ScalarBaseMult(u1.Bytes())
-		p.X, p.Y = bigint.GoToBigInt(px), bigint.GoToBigInt(py)
-		tmpX, tmpY := params.Curve.ScalarMult(key.UseToVerify.X.GetGoBigInt(), key.UseToVerify.Y.GetGoBigInt(), u2.Bytes())
-		x, _ := params.Curve.Add(p.X.GetGoBigInt(), p.Y.GetGoBigInt(), tmpX, tmpY)
-		if bigint.GoToBigInt(x).Cmp(sig.R) == 0 {
+		e, err := sm2.Sm2Hash(m, userPK)
+		if err != nil {
+			return false
+		}
+
+		sx, sy := params.Curve.ScalarBaseMult(sig.S.Bytes())
+		t := new(big.Int).Add(sig.R.GetGoBigInt(), sig.S.GetGoBigInt())
+		t.Mod(t, params.Curve.Params().N)
+		tx, ty := params.Curve.ScalarMult(ux, uy, t.Bytes())
+		x, _ := params.Curve.Add(sx, sy, tx, ty)
+		x.Add(x, e)
+		x.Mod(x, params.Curve.Params().N)
+		if x.Cmp(sig.R.GetGoBigInt()) == 0 {
 			return true
 		} else {
 			return false

@@ -5,6 +5,7 @@ import (
 
 	"github.com/11090815/dscabs/ecdsa"
 	"github.com/11090815/dscabs/ecdsa/bigint"
+	"github.com/11090815/dscabs/sm2"
 )
 
 type SystemParams struct {
@@ -13,9 +14,10 @@ type SystemParams struct {
 }
 
 type AttributeKey struct {
-	SecretKey  *bigint.BigInt                       `json:"secret-key"`
-	PublicKey  map[string]*ecdsa.EllipticCurvePoint `json:"public-key"`
-	Attributes []string                             `json:"attributes"`
+	SecretKey    *bigint.BigInt                       `json:"secret-key"`
+	SM2SecretKey *sm2.PrivateKey                      `json:"sm2-secret-key"`
+	PublicKey    map[string]*ecdsa.EllipticCurvePoint `json:"public-key"`
+	Attributes   []string                             `json:"attributes"`
 }
 
 type Polynomial struct {

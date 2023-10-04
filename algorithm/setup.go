@@ -1,23 +1,18 @@
 package algorithm
 
 import (
-	"crypto/elliptic"
-
 	"github.com/11090815/dscabs/ecdsa"
 	"github.com/11090815/dscabs/ecdsa/bigint"
+	"github.com/11090815/dscabs/sm2"
 )
 
 func Setup(securityLevel int) *SystemParams {
 	params := &SystemParams{}
 	switch securityLevel {
-	case 224:
-		params.Curve = elliptic.P224()
 	case 256:
-		params.Curve = elliptic.P256()
-	case 384:
-		params.Curve = elliptic.P384()
+		params.Curve = sm2.P256Sm2()
 	default:
-		params.Curve = elliptic.P256()
+		params.Curve = sm2.P256Sm2()
 	}
 
 	params.MSK = ecdsa.RandNumOnCurve(params.Curve)

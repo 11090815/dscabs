@@ -7,43 +7,28 @@ import (
 	"time"
 
 	"github.com/11090815/dscabs/algorithm"
+	"github.com/11090815/dscabs/ecdsa"
 	"github.com/11090815/dscabs/ecdsa/bigint"
+	"github.com/11090815/dscabs/sm2"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProcess(t *testing.T) {
+func TestSM2Sign(t *testing.T) {
 	params := algorithm.Setup(256)
+	sk := algorithm.ExtractAK(params, []string{"教师", "正高职", "信息安全", "CCF-A-1"})
+	msg := []byte(time.Now().Format(time.RFC3339Nano))
 
-	ak := algorithm.ExtractAK(params, []string{"a", "b", "c", "d"})
-	fmt.Println(ak.SecretKey)
-
-	pk := algorithm.GenPK(params, "{a,b,c,d,[4,4]}")
-
-	sig := algorithm.Sign(params, []byte("hello"), ak.SecretKey)
-
-	ok := algorithm.Verify(params, ak.PublicKey, pk, []byte("hello"), sig)
-
-	assert.Equal(t, ok, true)
-}
-
-func TestSign(t *testing.T) {
-	params := algorithm.Setup(256)
-	ori := "12642144789571432543536238136988414452360763536599579669146462956379963041029"
-	sk, _ := new(bigint.BigInt).SetString(ori, 10)
-
-	now := time.Now().Format(time.RFC3339)
-	fmt.Println("signed message:", now)
-
-	sig := algorithm.Sign(params, []byte(fmt.Sprintf("tom:DogContract:AddDog:%s", now)), sk)
-
-	fmt.Println("signature:", fmt.Sprintf("%s,%s", sig.S, sig.R))
-
-}
-
-func TestHex(t *testing.T) {
-	str := "1234"
-
-	bz, err := hex.DecodeString(str)
+	sig, err := algorithm.Sign(sk.SM2SecretKey, msg)
 	assert.NoError(t, err)
-	t.Log(bz)
+
+	bytesSig, err := hex.DecodeString(sig)
+	assert.Nil(t, err)
+	r, s, err := sm2.GetRSFromSig(bytesSig)
+	assert.Nil(t, err)
+
+	pk := algorithm.GenPK(params, `{{教师,正高职,女,信息安全,[4,2]},{CCF-A-1,CCF-B-2,CCF-C-4,[3,1]},[2,2]}`)
+
+	res := algorithm.Verify(params, sk.PublicKey, &sk.SM2SecretKey.PublicKey, pk, msg, &ecdsa.EllipticCurveSignature{S: bigint.GoToBigInt(s), R: bigint.GoToBigInt(r)})
+
+	fmt.Println(res)
 }

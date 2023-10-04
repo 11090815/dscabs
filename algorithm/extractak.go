@@ -7,6 +7,7 @@ import (
 
 	"github.com/11090815/dscabs/ecdsa"
 	"github.com/11090815/dscabs/ecdsa/bigint"
+	"github.com/11090815/dscabs/sm2"
 )
 
 func ExtractAK(params *SystemParams, w []string) *AttributeKey {
@@ -44,6 +45,9 @@ func ExtractAK(params *SystemParams, w []string) *AttributeKey {
 	key.SecretKey = sk
 	key.Attributes = make([]string, len(w))
 	copy(key.Attributes, w)
+
+	key.SM2SecretKey, _ = sm2.GenerateKey_(sk.GetGoBigInt(), params.Curve)
+
 	return key
 }
 
