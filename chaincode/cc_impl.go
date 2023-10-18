@@ -170,8 +170,10 @@ func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID stri
 		return false, err
 	}
 
-	if al.Log[sig] == 0 {
-		al.Log[sig] = 1
+	key := strings.Join([]string{contractName, functionName, sig, signedMessage}, ".")
+
+	if al.Log[key] == 0 {
+		al.Log[key] = 1
 	} else {
 		return false, errors.New("prohibit replay of signature token")
 	}
