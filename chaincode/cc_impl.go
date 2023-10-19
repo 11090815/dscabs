@@ -88,9 +88,13 @@ func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID s
 
 	if strings.Contains(attributes, ",") {
 		attributesSlice := strings.Split(attributes, ",")
-		ak = compoments.AddUserAttributes(params, userID, attributesSlice)
+		trim := make([]string, 0)
+		for _, attr := range attributesSlice {
+			trim = append(trim, strings.Trim(attr, "\""))
+		}
+		ak = compoments.AddUserAttributes(params, userID, trim)
 	} else {
-		ak = compoments.AddUserAttributes(params, userID, []string{attributes})
+		ak = compoments.AddUserAttributes(params, userID, []string{strings.Trim(attributes, "\"")})
 	}
 
 	akJSON, err := json.Marshal(ak)
