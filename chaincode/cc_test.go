@@ -11,6 +11,7 @@ import (
 	"github.com/11090815/dscabs/ecdsa/bigint"
 	"github.com/11090815/dscabs/sm2"
 	"github.com/stretchr/testify/assert"
+	"github.com/hyperledger/fabric/common/flogging"
 )
 
 func TestSM2Sign(t *testing.T) {
@@ -31,4 +32,13 @@ func TestSM2Sign(t *testing.T) {
 	res := algorithm.Verify(params, sk.PublicKey, &sk.SM2SecretKey.PublicKey, pk, msg, &ecdsa.EllipticCurveSignature{S: bigint.GoToBigInt(s), R: bigint.GoToBigInt(r)})
 
 	fmt.Println(res)
+}
+
+func TestLogging(t *testing.T) {
+	flogging.Init(flogging.Config{
+		Format: "%{color}%{time:2006-01-02 15:04:05.000 MST} [%{module}] -> %{level:.5s} %{id:03x}%{color:reset} %{message}",
+		LogSpec: "debug",
+	})
+	logger := flogging.MustGetLogger("smart_contract")
+	logger.Debug("hello")
 }

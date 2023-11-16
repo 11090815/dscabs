@@ -25,6 +25,10 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
+# github.com/hyperledger/fabric v2.1.1+incompatible
+## explicit
+github.com/hyperledger/fabric/common/flogging
+github.com/hyperledger/fabric/common/flogging/fabenc
 # github.com/hyperledger/fabric-chaincode-go v0.0.0-20200424173110-d7076418f212
 github.com/hyperledger/fabric-chaincode-go/pkg/attrmgr
 github.com/hyperledger/fabric-chaincode-go/pkg/cid
@@ -51,6 +55,9 @@ github.com/joho/godotenv
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
 # github.com/rogpeppe/go-internal v1.3.0
@@ -60,6 +67,9 @@ github.com/rogpeppe/go-internal/semver
 # github.com/stretchr/testify v1.8.2
 ## explicit
 github.com/stretchr/testify/assert
+# github.com/sykesm/zap-logfmt v0.0.2
+## explicit
+github.com/sykesm/zap-logfmt
 # github.com/tjfoc/gmsm v1.4.1
 ## explicit
 github.com/tjfoc/gmsm/sm3
@@ -69,6 +79,19 @@ github.com/xeipuuv/gojsonpointer
 github.com/xeipuuv/gojsonreference
 # github.com/xeipuuv/gojsonschema v1.2.0
 github.com/xeipuuv/gojsonschema
+# go.uber.org/atomic v1.6.0
+go.uber.org/atomic
+# go.uber.org/multierr v1.5.0
+go.uber.org/multierr
+# go.uber.org/zap v1.14.1
+## explicit
+go.uber.org/zap
+go.uber.org/zap/buffer
+go.uber.org/zap/internal/bufferpool
+go.uber.org/zap/internal/color
+go.uber.org/zap/internal/exit
+go.uber.org/zap/zapcore
+go.uber.org/zap/zapgrpc
 # golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee
 ## explicit
 golang.org/x/crypto/cryptobyte
