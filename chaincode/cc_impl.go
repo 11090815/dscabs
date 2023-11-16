@@ -187,6 +187,8 @@ func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID stri
 		return false, err
 	}
 
+	s.logger.Debugf("The interface [%s] of the smart contract [%s] redirects the access request of the user [%s] to the DSCABS, ready to check the user's access rights.", functionName, contractName, userID)
+
 	s.logger.Debugf("Search for the policy key of interface [%s] of smart contract [%s] and the attribute public key of user [%s].", functionName, contractName, userID)
 
 	s.logger.Debugf("The KM passes the policy key of interface [%s] of smart contract [%s] and the attribute public key of user [%s] to the DSCABS.", functionName, contractName, userID)
