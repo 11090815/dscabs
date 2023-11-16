@@ -63,7 +63,7 @@ func (s *DSCABS) InitLedger(ctx contractapi.TransactionContextInterface, sl stri
 	return nil
 }
 
-func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID string, attributes string) (string, error) {
+func (*DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID string, attributes string) (string, error) {
 	if userID == "" {
 		return "", errors.New("user id must be different from \"\"")
 	}
@@ -107,40 +107,40 @@ func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID s
 		return "", err
 	}
 
-	return ak.SecretKey.String(), nil
+	return fmt.Sprintf("Successfully generated the attribute key for the user, where the attribute private key is [%s].", ak.SecretKey.String()), nil
 }
 
-func (s *DSCABS) GenPK(ctx contractapi.TransactionContextInterface, contractName string, functionName string, policy string) error {
+func (*DSCABS) GenPK(ctx contractapi.TransactionContextInterface, contractName string, functionName string, policy string) (string, error) {
 	if contractName == "" {
-		return errors.New("contract name must be different from \"\"")
+		return "", errors.New("contract name must be different from \"\"")
 	}
 
 	if functionName == "" {
-		return errors.New("function name must be different from \"\"")
+		return "", errors.New("function name must be different from \"\"")
 	}
 
 	if policy == "" {
-		return errors.New("policy must be different from \"\"")
+		return "", errors.New("policy must be different from \"\"")
 	}
 
 	params := &algorithm.SystemParams{Curve: new(elliptic.CurveParams)}
 
 	paramsJSON, err := ctx.GetStub().GetState(DSCABSMSK)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = json.Unmarshal(paramsJSON, &params)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	compoments.AddSmartContractFunctionPolicy(params, contractName, functionName, policy)
 
-	return nil
+	return fmt.Sprintf("Successfully set policy for method [%s] of smart contract [%s]. The policy has been converted into a policy key and stored at the KM.", functionName, contractName), nil
 }
 
-func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID string, contractName string, functionName string, sig string, signedMessage string) (bool, error) {
+func (*DSCABS) Access(ctx contractapi.TransactionContextInterface, userID string, contractName string, functionName string, sig string, signedMessage string) (bool, error) {
 	var ok bool
 
 	params := &algorithm.SystemParams{Curve: new(elliptic.CurveParams)}
@@ -195,7 +195,7 @@ func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID stri
 	return ok, nil
 }
 
-func (s *DSCABS) GetAccessLog(ctx contractapi.TransactionContextInterface, userID string) (string, error) {
+func (*DSCABS) GetAccessLog(ctx contractapi.TransactionContextInterface, userID string) (string, error) {
 	al := &AccessLog{}
 
 	alJSON, err := ctx.GetStub().GetState(Log)
