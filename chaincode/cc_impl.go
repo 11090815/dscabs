@@ -27,9 +27,6 @@ type AccessLog struct {
 }
 
 func (s *DSCABS) InitLedger(ctx contractapi.TransactionContextInterface, sl string, seed string) error {
-	fmt.Printf("********************************************************************************\n")
-	fmt.Printf("**                              初始化【DSCABS】                               **\n")
-	fmt.Printf("********************************************************************************\n")
 	flogging.Init(flogging.Config{
 		Format:  "%{color}%{time:2006-01-02 15:04:05.000 MST} [%{module}] -> %{level:.5s} %{id:03x}%{color:reset} %{message}",
 		LogSpec: "debug",
@@ -77,10 +74,6 @@ func (s *DSCABS) InitLedger(ctx contractapi.TransactionContextInterface, sl stri
 }
 
 func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID string, attributes string) (string, error) {
-	fmt.Println()
-	fmt.Printf("********************************************************************************\n")
-	fmt.Printf("**                               为用户注册属性                                **\n")
-	fmt.Printf("********************************************************************************\n")
 	if userID == "" {
 		return "", errors.New("用户的ID不能为空！！！")
 	}
@@ -132,10 +125,6 @@ func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID s
 }
 
 func (s *DSCABS) GenPK(ctx contractapi.TransactionContextInterface, contractName string, functionName string, policy string) (string, error) {
-	fmt.Println()
-	fmt.Printf("********************************************************************************\n")
-	fmt.Printf("**                          为智能合约接口配置访问策略                          **\n")
-	fmt.Printf("********************************************************************************\n")
 	if contractName == "" {
 		return "", errors.New("智能合约名不能为空！！！")
 	}
@@ -168,10 +157,6 @@ func (s *DSCABS) GenPK(ctx contractapi.TransactionContextInterface, contractName
 }
 
 func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID string, contractName string, functionName string, sig string, signedMessage string) (bool, error) {
-	fmt.Println()
-	fmt.Printf("********************************************************************************\n")
-	fmt.Printf("**                               验证用户访问权限                              **\n")
-	fmt.Printf("********************************************************************************\n")
 	var ok bool
 
 	params := &algorithm.SystemParams{Curve: new(elliptic.CurveParams)}
@@ -195,7 +180,7 @@ func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID stri
 	}
 
 	if !ok {
-		s.logger.Error("用户“”访问合约接口“”的请求被拒绝了，因为用户权限不满足访问策略...", userID, functionName)
+		s.logger.Errorf("用户“”访问合约接口“”的请求被拒绝了，因为用户权限不满足访问策略...", userID, functionName)
 		return false, errors.New("没有权限")
 	}
 
