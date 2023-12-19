@@ -28,7 +28,8 @@ type AccessLog struct {
 
 func (s *DSCABS) InitLedger(ctx contractapi.TransactionContextInterface, sl string, seed string) error {
 	fmt.Printf("********************************************************************************\n")
-	fmt.Printf("***************************** Initialisation Phase *****************************\n")
+	fmt.Printf("**                              初始化【DSCABS】                               **\n")
+	fmt.Printf("********************************************************************************\n")
 	flogging.Init(flogging.Config{
 		Format:  "%{color}%{time:2006-01-02 15:04:05.000 MST} [%{module}] -> %{level:.5s} %{id:03x}%{color:reset} %{message}",
 		LogSpec: "debug",
@@ -70,7 +71,7 @@ func (s *DSCABS) InitLedger(ctx contractapi.TransactionContextInterface, sl stri
 		return err
 	}
 
-	logger.Info("Successfully initialised DSCABS using the [Setup] algorithm.")
+	logger.Info("成功初始化【DSCABS】！！！")
 
 	return nil
 }
@@ -78,16 +79,15 @@ func (s *DSCABS) InitLedger(ctx contractapi.TransactionContextInterface, sl stri
 func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID string, attributes string) (string, error) {
 	fmt.Println()
 	fmt.Printf("********************************************************************************\n")
-	fmt.Printf("*********************** Generate Attribute Keys for User ***********************\n")
+	fmt.Printf("**                               为用户注册属性                                **\n")
+	fmt.Printf("********************************************************************************\n")
 	if userID == "" {
-		return "", errors.New("user id must be different from \"\"")
+		return "", errors.New("用户的ID不能为空！！！")
 	}
 
 	if attributes == "" {
-		return "", errors.New("attributes must be different from \"\"")
+		return "", errors.New("提供的属性值不能为空！！！")
 	}
-
-	s.logger.Infof("Prepare to generate an attribute key for the user using the [GenAK] algorithm.")
 
 	params := &algorithm.SystemParams{Curve: new(elliptic.CurveParams)}
 
@@ -114,8 +114,6 @@ func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID s
 		ak = compoments.AddUserAttributes(params, userID, []string{strings.Trim(attributes, "\"")})
 	}
 
-	s.logger.Debug("Successfully generated an attribute key for the user.")
-
 	akJSON, err := json.Marshal(ak)
 	if err != nil {
 		return "", err
@@ -126,30 +124,29 @@ func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID s
 		return "", err
 	}
 
-	s.logger.Debug("After consensus, the user attribute public key is stored in the KM.")
+	s.logger.Debugf("用户“%s”的属性信息已被成功注册~~~", userID)
 
-	s.logger.Warnf("The user's attribute private key is [%s].", ak.SecretKey.String())
+	s.logger.Warnf("此时用户可用于访问智能合约的【token】是“%s”~~~", ak.SecretKey.String())
 
-	return fmt.Sprintf("Successfully generated the attribute key for the user, where the attribute private key is [%s].", ak.SecretKey.String()), nil
+	return fmt.Sprintf("[%s]", ak.SecretKey.String()), nil
 }
 
 func (s *DSCABS) GenPK(ctx contractapi.TransactionContextInterface, contractName string, functionName string, policy string) (string, error) {
 	fmt.Println()
 	fmt.Printf("********************************************************************************\n")
-	fmt.Printf("************** Configure Access Policies for Contract Interfaces ***************\n")
+	fmt.Printf("**                          为智能合约接口配置访问策略                          **\n")
+	fmt.Printf("********************************************************************************\n")
 	if contractName == "" {
-		return "", errors.New("contract name must be different from \"\"")
+		return "", errors.New("智能合约名不能为空！！！")
 	}
 
 	if functionName == "" {
-		return "", errors.New("function name must be different from \"\"")
+		return "", errors.New("合约接口名不能为空！！！")
 	}
 
 	if policy == "" {
-		return "", errors.New("policy must be different from \"\"")
+		return "", errors.New("访问策略不能为空！！！")
 	}
-
-	s.logger.Infof("Prepare to configure an access policy [%s] for interface [%s] of smart contract [%s] using the GenPK algorithm.", policy, functionName, contractName)
 
 	params := &algorithm.SystemParams{Curve: new(elliptic.CurveParams)}
 
@@ -165,15 +162,16 @@ func (s *DSCABS) GenPK(ctx contractapi.TransactionContextInterface, contractName
 
 	compoments.AddSmartContractFunctionPolicy(params, contractName, functionName, policy)
 
-	s.logger.Debugf("Successfully configure an access policy for interface [%s] of smart contract [%s]. After consensus, the generated policy key is stored in KM.", functionName, contractName)
+	s.logger.Debugf("成功为智能合约“%s”的接口“%s”设置访问策略“%s”~~~", contractName, functionName, policy)
 
-	return fmt.Sprintf("Successfully set policy for method [%s] of smart contract [%s]. The policy has been converted into a policy key and stored at the KM.", functionName, contractName), nil
+	return fmt.Sprintf("成功为智能合约“%s”的接口“%s”设置访问策略“%s”~~~", contractName, functionName, policy), nil
 }
 
 func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID string, contractName string, functionName string, sig string, signedMessage string) (bool, error) {
 	fmt.Println()
 	fmt.Printf("********************************************************************************\n")
-	fmt.Printf("*********************** Authenticate User Access Rights ************************\n")
+	fmt.Printf("**                               验证用户访问权限                              **\n")
+	fmt.Printf("********************************************************************************\n")
 	var ok bool
 
 	params := &algorithm.SystemParams{Curve: new(elliptic.CurveParams)}
@@ -187,22 +185,18 @@ func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID stri
 		return false, err
 	}
 
-	s.logger.Debugf("The interface [%s] of the smart contract [%s] redirects the access request of the user [%s] to the DSCABS, ready to check the user's access rights.", functionName, contractName, userID)
+	s.logger.Debugf("智能合约“%s”的接口“%s”将用户“%s”的访问请求重定向给【DSCABS】，准备检查用户是否有权调用接口“%s”...", contractName, functionName, userID, functionName)
 
-	s.logger.Debugf("Search for the policy key of interface [%s] of smart contract [%s] and the attribute public key of user [%s].", functionName, contractName, userID)
-
-	s.logger.Debugf("The KM passes the policy key of interface [%s] of smart contract [%s] and the attribute public key of user [%s] to the DSCABS.", functionName, contractName, userID)
-
-	s.logger.Info("DSCABS begins to use the [VerifyT] algorithm to verify that user %s's signature token satisfies the access policy of contract interface [%s].", userID, functionName)
+	s.logger.Infof("【DSCABS】开始验证用户“%s”权限是否满足函数“%s”的访问策略...", userID, functionName)
 
 	if ok, err = compoments.GateKeeper(params, userID, contractName, functionName, sig, signedMessage); err != nil {
-		s.logger.Errorf("A serious error [%s] has occurred in the authentication process, prohibiting user [%s] from accessing contract interface [%s].", err.Error(), userID, functionName)
+		s.logger.Errorf("在验证的过程中，发生了严重的错误“%s”, 禁止用户“%s”访问合约接口“%s”！！！", err.Error(), userID, functionName)
 		return false, err
 	}
 
 	if !ok {
-		s.logger.Error("The user's request for access to interface [%s] of smart contract [%s] is denied because the signature does not comply with the verification rules of the policy key.", functionName, contractName)
-		return false, errors.New("invalid signature token")
+		s.logger.Error("用户“”访问合约接口“”的请求被拒绝了，因为用户权限不满足访问策略...", userID, functionName)
+		return false, errors.New("没有权限")
 	}
 
 	al := &AccessLog{}
@@ -222,8 +216,8 @@ func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID stri
 	if al.Log[key] == 0 {
 		al.Log[key] = 1
 	} else {
-		s.logger.Errorf("Prohibit users from accessing the contract interface with duplicate signature tokens [%s]. (from Bloom filter checking results)", functionName)
-		return false, errors.New("prohibit replay of signature token")
+		s.logger.Errorf("禁止用户“%s”重放访问请求！！！", userID)
+		return false, errors.New("没有权限，因为滥用权限")
 	}
 
 	alJSON, err = json.Marshal(*al)
@@ -236,7 +230,7 @@ func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID stri
 		return false, err
 	}
 
-	s.logger.Debugf("The user's signed token conforms to the access policy of contract interface [%s] and therefore allows user [%s] access to contract interface [%s].", functionName, userID, functionName)
+	s.logger.Debugf("恭喜用户“%s”成功通过权限检查，具有访问智能合约“%s”的接口“%s”的权利~~~", functionName, userID, functionName)
 
 	return ok, nil
 }
@@ -256,7 +250,7 @@ func (*DSCABS) GetAccessLog(ctx contractapi.TransactionContextInterface, userID 
 
 	log, ok := al.Log[userID]
 	if !ok {
-		return "", fmt.Errorf("there is no such user: [%s]", userID)
+		return "", fmt.Errorf("没有此用户：%s", userID)
 	}
 
 	return strconv.Itoa(log), nil
