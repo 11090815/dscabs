@@ -117,7 +117,7 @@ func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID s
 		return "", err
 	}
 
-	s.logger.Debugf("用户“%s”的属性信息已被成功注册~~~", userID)
+	s.logger.Debugf("用户“%s”的属性信息“{%s}”已被成功注册~~~", userID, attributes)
 
 	s.logger.Warnf("此时用户可用于访问智能合约的【token】是“%s”~~~", ak.SecretKey.String())
 
@@ -180,7 +180,7 @@ func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID stri
 	}
 
 	if !ok {
-		s.logger.Errorf("用户“”访问合约接口“”的请求被拒绝了，因为用户权限不满足访问策略...", userID, functionName)
+		s.logger.Errorf("用户“%s”访问合约接口“%s”的请求被拒绝了，因为用户权限不满足访问策略...", userID, functionName)
 		return false, errors.New("没有权限")
 	}
 
