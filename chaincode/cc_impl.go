@@ -119,8 +119,6 @@ func (s *DSCABS) ExtractAK(ctx contractapi.TransactionContextInterface, userID s
 
 	s.logger.Debugf("用户“%s”的属性信息“{%s}”已被成功注册~~~", userID, attributes)
 
-	s.logger.Warnf("此时用户可用于访问智能合约的【token】是“%s”~~~", ak.SecretKey.String())
-
 	return fmt.Sprintf("[%s]", ak.SecretKey.String()), nil
 }
 
