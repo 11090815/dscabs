@@ -213,7 +213,7 @@ func (s *DSCABS) Access(ctx contractapi.TransactionContextInterface, userID stri
 		return false, err
 	}
 
-	s.logger.Debugf("恭喜用户“%s”成功通过权限检查，具有访问智能合约“%s”的接口“%s”的权利~~~", functionName, userID, functionName)
+	s.logger.Debugf("恭喜用户“%s”成功通过权限检查，具有访问智能合约“%s”的接口“%s”的权利~~~", userID, contractName, functionName)
 
 	return ok, nil
 }
